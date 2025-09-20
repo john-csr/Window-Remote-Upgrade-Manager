@@ -35,13 +35,13 @@ function Show-ProgressBar {
     Write-Host ("[{0}] {1}% - {2}" -f $bar, $Percent, $Message)
 }
 
-Write-Host "`n🚀 Starting remote upgrade orchestration for $ComputerName..."
+Write-Host "`n Starting remote upgrade orchestration for $ComputerName..."
 
 try {
     Test-Connection -ComputerName $ComputerName -Count 1 -Quiet -ErrorAction Stop | Out-Null
     Test-WSMan -ComputerName $ComputerName -ErrorAction Stop | Out-Null
 } catch {
-    throw "❌ Cannot reach $ComputerName. Check ping and WinRM availability."
+    throw "Cannot reach $ComputerName. Check ping and WinRM availability."
 }
 
 $remoteCheck = {
@@ -57,7 +57,7 @@ $remoteCheck = {
 }
 $pre = Invoke-Command -ComputerName $ComputerName -ScriptBlock $remoteCheck -ArgumentList $SourcePath
 if (-not $pre.Exists) {
-    throw ("❌ Source path not found on {0}: {1}" -f $ComputerName, $SourcePath)
+    throw ("Source path not found on {0}: {1}" -f $ComputerName, $SourcePath)
 }
 Write-Host "Remote source located. Free space: $($pre.FreeGB) GB. Edition: $($pre.Edition)"
 
@@ -75,7 +75,7 @@ while ((Get-Date) -lt $deadline) {
 
     if ($phase -eq 'pre-reboot') {
         if (-not $up) {
-            Write-Host "`n🔄 WinRM went down — likely rebooting into setup."
+            Write-Host "`n WinRM went down — likely rebooting into setup."
             $phase = 'rebooting'
             $wasDown = $true
         } else {
@@ -126,3 +126,4 @@ try {
 }
 
 Write-Host "`n Done."
+
