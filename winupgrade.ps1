@@ -54,7 +54,7 @@ $pre = Invoke-Command -ComputerName $ComputerName -ScriptBlock $remoteCheck -Arg
 if (-not $pre.Exists) {
     throw ("Source path not found on {0}: {1}" -f $ComputerName, $SourcePath)
 }
-Write-Host "✅ Remote source located. Free space: $($pre.FreeGB) GB. Edition: $($pre.Edition)"
+Write-Host "Remote source located. Free space: $($pre.FreeGB) GB. Edition: $($pre.Edition)"
 
 # Create and launch scheduled task remotely
 $remoteSetup = {
@@ -90,9 +90,9 @@ $remoteSetup = {
         Start-Sleep -Seconds 5
     }
     if ($started) {
-        Write-Host "🛠️ Setup is running on $env:COMPUTERNAME."
+        Write-Host "Setup is running on $env:COMPUTERNAME."
     } else {
-        Write-Host "⚠️ Setup did not start within expected time."
+        Write-Host "Setup did not start within expected time."
     }
 }
 Write-Host "Launching silent setup task..."
@@ -109,16 +109,16 @@ while ((Get-Date) -lt $deadline) {
 
     if ($phase -eq 'pre-reboot') {
         if (-not $up) {
-            Write-Host "🔄 WinRM went down — likely rebooting into setup."
+            Write-Host "WinRM went down — likely rebooting into setup."
             $phase = 'rebooting'
             $wasDown = $true
         } else {
-            Write-Host "⏳ Setup staging; waiting for reboot..."
+            Write-Host "Setup staging; waiting for reboot..."
         }
     }
     elseif ($phase -eq 'rebooting') {
         if ($up) {
-            Write-Host "✅ WinRM is back — post-upgrade phase detected."
+            Write-Host "WinRM is back — post-upgrade phase detected."
             break
         }
     }
@@ -127,7 +127,7 @@ while ((Get-Date) -lt $deadline) {
 }
 
 if (-not $wasDown) {
-    Write-Host "⚠️ WinRM never dropped. Setup may still be staging."
+    Write-Host "WinRM never dropped. Setup may still be staging."
 }
 
 # Final version check
@@ -150,12 +150,13 @@ try {
     $isTargetVersion = ($ver.DisplayVersion -in @('23H2','24H2'))
 
     if ($isWin11 -and $isEdu -and $isTargetVersion) {
-        Write-Host "✅ Upgrade completed successfully to Windows 11 Education $($ver.DisplayVersion)."
+        Write-Host "Upgrade completed successfully to Windows 11 Education $($ver.DisplayVersion)."
     } else {
-        Write-Host "⚠️ Upgrade status uncertain. Version does not match expected 23H2 or 24H2 Education."
+        Write-Host "Upgrade status uncertain. Version does not match expected 23H2 or 24H2 Education."
     }
 } catch {
-    Write-Host "❌ Could not query post-upgrade version. The device may still be finalizing."
+    Write-Host "Could not query post-upgrade version. The device may still be finalizing."
 }
 
-Write-Host "🎯 Done."
+Write-Host "Done."
+
