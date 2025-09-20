@@ -64,7 +64,7 @@ Provides a user-friendly GUI for launching and managing upgrades.
 
 - Admin rights on target machines  
 - WinRM enabled and accessible  
-- Network share containing setup files (e.g., `\\a0751stech\school-shares\24h2`)  
+- Network share containing setup files (e.g., `\\server1\share1\24h2`)  
 - PowerShell execution policy set to allow script execution  
 
 **Use Case:**  
