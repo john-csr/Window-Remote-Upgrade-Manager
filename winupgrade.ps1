@@ -28,7 +28,7 @@ $TaskName       = 'InPlaceUpgrade'
 $TimeoutMinutes = 180
 # --------------------------------------------------------------
 
-Write-Host "🚀 Starting remote upgrade orchestration for $ComputerName..."
+Write-Host "Starting remote upgrade orchestration for $ComputerName..."
 
 # Connectivity check
 try {
