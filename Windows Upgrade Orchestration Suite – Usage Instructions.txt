@@ -1,0 +1,63 @@
+Windows Upgrade Orchestration Suite – Usage Instructions
+Author: John C.
+Version: 1.0
+Date: September 2025
+
+Overview:
+This suite enables IT administrators to remotely perform in-place Windows upgrades using a combination of PowerShell scripts and an HTA interface. It supports silent execution, progress monitoring, and file verification across multiple machines.
+
+Components:
+1. winupgrade.ps1 – Launches the upgrade remotely via scheduled task.
+2. upgr-progressmon.ps1 – Monitors upgrade progress in real time.
+3. HTA Interface – Provides GUI for launching scripts and managing upgrades.
+
+Requirements:
+- Administrator rights on all target machines.
+- WinRM enabled and accessible.
+- PowerShell execution policy set to allow script execution.
+- Setup files staged in a network share.
+- Scripts located in H:\Scripts. (adjust the PowerShell script paths as needed for your environment)
+
+HTA Functions:
+1. CopySetupFiles
+   - Copies setup files from a network share to C:\WinSetup on the target machine.
+   - Uses robocopy for reliable transfer.
+   - Format for network share:
+     (source) \\server-name\share-name\24h2 
+     (destination) computer name -ex. workstation1
+    
+
+2. VerifyFiles
+   - Uses WMI to confirm that C:\WinSetup exists and contains files.
+   - Displays file count in output box.
+   - Does not count files in subfolders.
+
+3. LaunchUpgrade
+   - Executes winupgrade.ps1 with the specified computer name.
+   - Starts a scheduled task remotely to run setup.exe silently.
+   - Format for computer name:
+     a0751L314-5739 (no slashes, spaces, or domain suffixes)
+
+4. LaunchMonitor
+   - Executes upgr-progressmon.ps1 to track upgrade progress.
+   - Displays live progress bar and status messages.
+   - Keeps shell open using cmd.exe /k for visibility.
+
+Usage Steps:
+1. Enter the target computer name in the HTA textbox.
+2. Click "Copy Setup Files" to transfer upgrade files.
+3. Click "Verify Files" to confirm readiness.
+4. Click "Launch Upgrade" to begin the upgrade process.
+5. Click "Launch Monitor" to track progress in real time.
+
+Notes:
+- Scripts must reside in H:\Scripts (can be adjusted in the HTA code as needed).
+- Setup files must be accessible via UNC path.
+- HTA should be run from a technician’s workstation with network access to all targets.
+- Monitor script shows progress stages such as "Rebooting into setup" and percentage completion.
+
+Benefits:
+- Centralized upgrade control.
+- Silent execution with minimal user disruption.
+- Real-time monitoring and feedback.
+- Scalable across dozens or hundreds of machines.

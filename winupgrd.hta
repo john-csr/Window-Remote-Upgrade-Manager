@@ -1,0 +1,174 @@
+<html>
+<head>
+<title>Windows Upgrade Manager</title>
+<HTA:APPLICATION ID="UpgradeManager" 
+    APPLICATIONNAME="UpgradeManager"
+    BORDER="thin"
+    SCROLL="yes"
+    SINGLEINSTANCE="yes"
+    WINDOWSTATE="normal">
+
+<meta name="author" content="John C.">
+<meta name="description" content="Windows Upgrade Orchestration Suite for remote in-place upgrades using PowerShell and HTA.">
+<meta name="version" content="1.0">
+<meta name="created" content="2025-09-19">
+<meta name="toolset" content="HTA interface with winupgrade.ps1 and upgr-progressmon.ps1">
+
+
+<style>
+body { font-family: Segoe UI; margin: 20px; }
+input, button, textarea { margin: 5px 0; width: 300px; }
+button { width: 150px; }
+textarea { height: 100px; }
+</style>
+
+
+
+
+
+
+<script language="VBScript">
+
+
+Sub CreateWinSetupFolder_WMI
+    Dim comp, locator, svc, ret
+    comp = Trim(document.getElementById("txtCreateComp").value)
+    If comp = "" Then
+        MsgBox "Enter a computer name": Exit Sub
+    End If
+
+    On Error Resume Next
+    Set locator = CreateObject("WbemScripting.SWbemLocator")
+    Set svc = locator.ConnectServer(comp, "root\cimv2")
+    If Err.Number <> 0 Or (svc Is Nothing) Then
+        MsgBox "WMI connect failed on " & comp & ": " & Err.Description
+        Exit Sub
+    End If
+    svc.Security_.ImpersonationLevel = 3
+
+    Dim process, cmd
+    Set process = svc.Get("Win32_Process")
+    If (process Is Nothing) Then
+        MsgBox "Could not access Win32_Process on " & comp
+        Exit Sub
+    End If
+
+    cmd = "cmd.exe /c mkdir C:\WinSetup"
+    ret = process.Create(cmd, Null, Null)
+    If ret = 0 Then
+        MsgBox "WinSetup folder created on " & comp
+    Else
+        MsgBox "WMI Create returned code " & ret & " on " & comp
+    End If
+End Sub
+
+Sub CopySetupFiles
+    Dim src, comp, dest, cmd, shell
+    src = Trim(document.getElementById("txtSource").value)
+    comp = Trim(document.getElementById("txtDestComp").value)
+
+    If src = "" Or comp = "" Then
+        MsgBox "Enter both source and destination": Exit Sub
+    End If
+
+    ' Build destination UNC path with exactly two backslashes
+    dest = "\\" & comp & "\C$\WinSetup"
+
+    ' Build robocopy command
+    cmd = "cmd.exe /k robocopy """ & src & """ """ & dest & """ /E /NFL /NDL /NP /TEE /R:2 /W:5"
+
+    Set shell = CreateObject("WScript.Shell")
+    shell.Run cmd, 1, False
+End Sub
+
+
+
+
+
+Sub VerifyFiles
+    comp = document.getElementById("txtVerifyComp").value
+    If comp = "" Then
+        MsgBox "Enter a computer name": Exit Sub
+    End If
+
+    On Error Resume Next
+    Set locator = CreateObject("WbemScripting.SWbemLocator")
+    Set service = locator.ConnectServer(comp, "root\cimv2")
+    service.Security_.ImpersonationLevel = 3
+
+    folderPath = "C:\WinSetup"
+    query = "SELECT * FROM CIM_DataFile WHERE Path='\\WinSetup\\' AND Drive='C:'"
+    Set files = service.ExecQuery(query)
+
+    fileCount = files.Count
+    setupVersion = "Not found"
+
+    ' Look specifically for setup.exe and get its version
+    For Each file In files
+        If LCase(file.FileName) = "setup" And LCase(file.Extension) = "exe" Then
+            setupVersion = file.Version
+            Exit For
+        End If
+    Next
+
+    If fileCount = 0 Then
+        document.getElementById("txtVerifyOutput").value = "Folder not found or no files in WinSetup on " & comp
+    Else
+        document.getElementById("txtVerifyOutput").value = "Files found in WinSetup on " & comp & ": " & fileCount & vbCrLf & "Setup.exe version: " & setupVersion
+    End If
+End Sub
+
+
+Sub LaunchUpgrade
+    comp = document.getElementById("txtUpgradeComp").value
+    If comp = "" Then MsgBox "Enter a computer name": Exit Sub
+    Set shell = CreateObject("WScript.Shell")
+    shell.Run "powershell.exe -ExecutionPolicy Bypass -File H:\Scripts\winupgrade.ps1 -ComputerName " & comp, 1, False
+    MsgBox "Upgrade script launched for " & comp
+End Sub
+
+Sub LaunchMonitor
+    comp = document.getElementById("txtMonitorComp").value
+    If comp = "" Then MsgBox "Enter a computer name": Exit Sub
+
+    Set shell = CreateObject("WScript.Shell")
+
+    ' Wrap in cmd.exe /k to keep the window open
+    cmd = "cmd.exe /k powershell.exe -ExecutionPolicy Bypass -File H:\Scripts\upgr-progressmon.ps1 -ComputerName " & comp
+    shell.Run cmd, 1, False
+
+    MsgBox "Monitor script launched for " & comp
+End Sub
+
+
+</script>
+</head>
+<body bgcolor=lightblue>
+<h2>Windows Upgrade Manager</h2>
+
+<h3>Create WinSetup Folder</h3>
+<input type="text" id="txtCreateComp" placeholder="Destination Computer Name"><br>
+<button onclick="CreateWinSetupFolder_WMI">Create Folder</button>
+
+
+
+<h3>Copy Setup Files</h3>
+<input type="text" id="txtSource" placeholder="Source Folder (e.g. Y:\a0751stech\23h2)"><br>
+<input type="text" id="txtDestComp" placeholder="Destination Computer Name"><br>
+<button onclick="CopySetupFiles">Copy Files</button>
+
+<h3>Verify WinSetup Folder</h3>
+<input type="text" id="txtVerifyComp" placeholder="Computer Name"><br>
+<button onclick="VerifyFiles">Verify Files</button><br>
+<textarea id="txtVerifyOutput" readonly></textarea>
+
+<h3>Launch Upgrade</h3>
+<input type="text" id="txtUpgradeComp" placeholder="Computer Name"><br>
+<button onclick="LaunchUpgrade">Run Upgrade</button>
+
+<h3>Monitor Upgrade</h3>
+<input type="text" id="txtMonitorComp" placeholder="Computer Name"><br>
+<button onclick="LaunchMonitor">Run Monitor</button>
+
+</body>
+</html>

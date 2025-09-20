@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>Remote System BIOS Mode Checker</title>
+
+<HTA:APPLICATION
+  APPLICATIONNAME="System Readiness Checker"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  WINDOWSTATE="normal"
+  SCROLL="no" />
+
+<script language="VBScript">
+  Sub Window_OnLoad
+    window.resizeTo 650, 550
+  End Sub
+
+  Sub RunChecksRemote()
+    Dim remoteName, shell, cmd, psScript, output
+
+    remoteName = Trim(document.getElementById("remoteName").value)
+    If remoteName = "" Then
+        MsgBox "Please enter a remote computer name."
+        Exit Sub
+    End If
+
+    Set shell = CreateObject("WScript.Shell")
+
+    psScript = _
+    "Invoke-Command -ComputerName '" & remoteName & "' -ScriptBlock {" & vbCrLf & _
+    "  try {" & vbCrLf & _
+    "    $bios = Get-CimInstance -ClassName Win32_BIOS | Select-Object -ExpandProperty SMBIOSBIOSVersion;" & vbCrLf & _
+    "    $firmwareType = switch ((Get-CimInstance Win32_ComputerSystem).BootFirmwareType) {" & vbCrLf & _
+    "      0 { 'Unknown' } 1 { 'Legacy BIOS' } 2 { 'UEFI' } default { 'Other' }" & vbCrLf & _
+    "    };" & vbCrLf & _
+    "    $disk = Get-Disk -Number 0 -ErrorAction Stop;" & vbCrLf & _
+    "    $partitionStyle = $disk.PartitionStyle;" & vbCrLf & _
+    "    $bootMode = if ($partitionStyle -eq 'GPT') { 'UEFI (based on partition style)' } else { 'Legacy BIOS (based on partition style)' };" & vbCrLf & _
+    "    $cpuName = (Get-CimInstance Win32_Processor).Name;" & vbCrLf & _
+    "    $sse42 = if ($cpuName -match 'i3-8100|i5|i7|i9') {'SSE4.2 Supported'} else {'SSE4.2 Not Detected'};" & vbCrLf & _
+    "    $tpm = Get-WmiObject -Namespace 'Root\\CIMv2\\Security\\MicrosoftTpm' -Class Win32_Tpm -ErrorAction SilentlyContinue;" & vbCrLf & _
+    "    if ($tpm -eq $null) { $tpmStatus = 'TPM not found' } elseif ($tpm.SpecVersion -like '*2.0*') { $tpmStatus = 'TPM 2.0 is present' } else { $tpmStatus = 'TPM version: ' + $tpm.SpecVersion };" & vbCrLf & _
+    "    try { if (Confirm-SecureBootUEFI) { $secureBoot = 'Secure Boot is enabled' } else { $secureBoot = 'Secure Boot is disabled' } } catch { $secureBoot = 'Secure Boot not supported or inaccessible' };" & vbCrLf & _
+    "    return @(" & vbCrLf & _
+    "      'BIOS Version: ' + $bios," & vbCrLf & _
+    "      'Firmware Type: ' + $firmwareType," & vbCrLf & _
+    "      'Partition Style: ' + $partitionStyle," & vbCrLf & _
+    "      'Likely Boot Mode: ' + $bootMode," & vbCrLf & _
+    "      'CPU: ' + $cpuName," & vbCrLf & _
+    "      $sse42," & vbCrLf & _
+    "      'TPM Status: ' + $tpmStatus," & vbCrLf & _
+    "      'Secure Boot Status: ' + $secureBoot" & vbCrLf & _
+    "    ) -join [Environment]::NewLine;" & vbCrLf & _
+    "  } catch { 'Failed to retrieve info: ' + $_.Exception.Message }" & vbCrLf & _
+    "}"
+
+    cmd = "powershell.exe -ExecutionPolicy Bypass -Command """ & psScript & """"
+    output = shell.Exec(cmd).StdOut.ReadAll
+    document.getElementById("result").innerText = output
+  End Sub
+</script>
+
+<style>
+  body {
+    font-family: Segoe UI, sans-serif;
+    background-color: lightblue;
+    margin: 15px;
+    color: #333;
+  }
+  #result {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #666;
+    font-size: 14px;
+    white-space: pre-wrap;
+    height: 400px;
+    overflow-y: auto;
+  }
+  button {
+    font-size: 14px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <h3>Remote BIOS/UEFI & System Check</h3>
+  <b>Remote Computer Name:</b><br>
+  <input type="text" id="remoteName" size="30"><br><br>
+  <button onclick="RunChecksRemote">Run Remote System Checks</button>
+  <div id="result"></div>
+</body>
+</html>
