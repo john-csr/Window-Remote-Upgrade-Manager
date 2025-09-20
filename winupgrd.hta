@@ -147,28 +147,37 @@ End Sub
 <h2>Windows Upgrade Manager</h2>
 
 <h3>Create WinSetup Folder</h3>
+<h5>Computer Name</h5>
 <input type="text" id="txtCreateComp" placeholder="Destination Computer Name"><br>
 <button onclick="CreateWinSetupFolder_WMI">Create Folder</button>
 
 
 
 <h3>Copy Setup Files</h3>
+<h5>Source Server Share (full unc path \\server\share)</h5>
 <input type="text" id="txtSource" placeholder="Source Folder (e.g. Y:\a0751stech\23h2)"><br>
+<h5>Dest. Computer Name</h5>
 <input type="text" id="txtDestComp" placeholder="Destination Computer Name"><br>
 <button onclick="CopySetupFiles">Copy Files</button>
 
 <h3>Verify WinSetup Folder</h3>
+<h5>Computer Name</h5>
 <input type="text" id="txtVerifyComp" placeholder="Computer Name"><br>
 <button onclick="VerifyFiles">Verify Files</button><br>
 <textarea id="txtVerifyOutput" readonly></textarea>
 
 <h3>Launch Upgrade</h3>
+<h5>Computer Name</h5>
 <input type="text" id="txtUpgradeComp" placeholder="Computer Name"><br>
 <button onclick="LaunchUpgrade">Run Upgrade</button>
 
 <h3>Monitor Upgrade</h3>
+<h5>Computer Name</h5>
 <input type="text" id="txtMonitorComp" placeholder="Computer Name"><br>
 <button onclick="LaunchMonitor">Run Monitor</button>
 
 </body>
 </html>
+
+
+
