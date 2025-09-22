@@ -23,7 +23,7 @@ HTA Functions:
    - Copies setup files from a network share to C:\WinSetup on the target machine.
    - Uses robocopy for reliable transfer.
    - Format for network share:
-     (source) \\server-name\share-name\24h2 
+     (source) z:\source_files 
      (destination) computer name -ex. workstation1
     
 
