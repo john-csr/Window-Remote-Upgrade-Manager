@@ -1,3 +1,9 @@
+System Readiness Checker for Windows 11 Version 23H2 and 24H2 Deployment Description
+Author: John C.
+Version: 1.0
+Date: September 2025
+
+
 System Readiness Checker for Windows 11 Version 23H2 and 24H2 Deployment
 ---------------------------------------------------------------
 
@@ -64,3 +70,4 @@ Requirements:
 Use Case:
 ---------
 Ideal for IT administrators preparing devices for Windows 11 24H2 rollout. Ensures each system meets minimum hardware and firmware requirements before deployment, reducing upgrade failures and compliance issues.
+
