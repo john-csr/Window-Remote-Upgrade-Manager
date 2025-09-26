@@ -1,0 +1,66 @@
+System Readiness Checker for Windows 11 Version 23H2 and 24H2 Deployment
+---------------------------------------------------------------
+
+Overview:
+This tool, titled "Remote System BIOS Mode Checker," is designed to assess the readiness of remote Windows systems for upgrading to Windows 11 version 24H2. It uses an HTA (HTML Application) interface to execute PowerShell commands remotely, collecting key system information required for compatibility validation.
+
+Checks Performed:
+-----------------
+1. BIOS Version
+   - Retrieves the SMBIOS BIOS version using Win32_BIOS.
+   - Helps verify firmware recency and vendor support.
+
+2. Firmware Type
+   - Detects boot mode (Legacy BIOS or UEFI) via BootFirmwareType.
+   - UEFI is required for Secure Boot and modern Windows features.
+
+3. Partition Style
+   - Queries disk 0 using Get-Disk to determine GPT or MBR.
+   - GPT indicates UEFI boot mode, essential for Windows 11.
+
+4. Boot Mode Inference
+   - Infers boot mode based on partition style:
+     - GPT → UEFI
+     - MBR → Legacy BIOS
+
+5. CPU Model and SSE4.2 Support
+   - Extracts processor name via Win32_Processor.
+   - Uses pattern matching to identify CPUs likely to support SSE4.2 (e.g., Intel i3-8100, i5, i7, i9).
+   - SSE4.2 is required for certain Windows 11 features.
+
+6. TPM Status
+   - Checks for presence and version of TPM using Win32_Tpm.
+   - TPM 2.0 is mandatory for Windows 11 installation.
+
+7. Secure Boot Status
+   - Uses Confirm-SecureBootUEFI to check if Secure Boot is enabled.
+   - Secure Boot enhances system integrity and is required for Windows 11.
+
+Execution Flow:
+---------------
+- User enters the remote computer name in the HTA interface.
+- A PowerShell script is dynamically constructed and executed via Invoke-Command.
+- The script collects system information and returns a formatted summary.
+- Results are displayed in a scrollable output pane within the HTA window.
+
+Sample Output:
+--------------
+BIOS Version: HPQOEM - UEFI vF.66
+Firmware Type: UEFI
+Partition Style: GPT
+Likely Boot Mode: UEFI (based on partition style)
+CPU: Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz
+SSE4.2 Supported
+TPM Status: TPM 2.0 is present
+Secure Boot Status: Secure Boot is enabled
+
+Requirements:
+-------------
+- Remote PowerShell access must be enabled (WinRM configured).
+- Administrator privileges on the target machine.
+- Firewall rules must allow remote CIM/WMI queries.
+- Executing machine must support PowerShell and HTA.
+
+Use Case:
+---------
+Ideal for IT administrators preparing devices for Windows 11 24H2 rollout. Ensures each system meets minimum hardware and firmware requirements before deployment, reducing upgrade failures and compliance issues.
